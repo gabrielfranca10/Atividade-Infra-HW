@@ -1,7 +1,6 @@
-# Q1.asm - Conversões de base 10
 # Autor: Gabriel França de Albuquerque Pernambuco
 # Email: gfap@cesar.school
-# Calculadora Programador Didática
+# Calcuadora Programador Didática
 # Revisão: 14/11/2025 11:45
  
 .data
