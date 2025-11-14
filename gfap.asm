@@ -2,8 +2,8 @@
 # Autor: Gabriel França de Albuquerque Pernambuco
 # Email: gfap@cesar.school
 # Calculadora Programador Didática
-# Revisão: 13/11/2025 14:30
-
+# Revisão: 14/11/2025 11:45
+ 
 .data
 menu1: .asciiz "\n[Q1] Conversões a partir de base 10:\n1) Binário\n2) Octal\n3) Hexadecimal\n4) BCD\nEscolha: "
 ask:   .asciiz "\nDigite um número decimal: "
@@ -138,6 +138,50 @@ bcd_loop:
 
     move $a0, $t2
     j bcd_loop
+
+fim:
+    li $v0, 10
+    syscall
+
+# Complemento de 2 — 16 bits
+
+.data
+ask: .asciiz "\nDigite um valor decimal (signed): "
+msgbin: .asciiz "\nBinário puro: "
+msgcomp: .asciiz "\nComplemento de 2 (16 bits): "
+newline: .asciiz "\n"
+
+.text
+main:
+    li $v0, 4
+    la $a0, ask
+    syscall
+
+    li $v0, 5
+    syscall
+    move $t0, $v0
+
+    # pega 16 bits
+    andi $t1, $t0, 0xFFFF
+
+    li $v0, 4
+    la $a0, msgcomp
+    syscall
+
+    li $t2, 15
+
+loop_bits:
+    bltz $t2, fim
+
+    srl $t3, $t1, $t2
+    andi $t3, $t3, 1
+
+    li $v0, 1
+    move $a0, $t3
+    syscall
+
+    addi $t2, $t2, -1
+    j loop_bits
 
 fim:
     li $v0, 10
