@@ -1,13 +1,12 @@
 # Autor: Gabriel França de Albuquerque Pernambuco
 # Email: gfap@cesar.school
-# Calculadora Programador Didática
-# Revisão: 16/11/2025 17:40
-# ----------------------------------------------------
-# Implementa:
-# Q1 – Base 10 → Binário, Octal, Hex, BCD (com passos)
-# Q2 – Complemento de 2 (16 bits)
-# Q3 – IEEE754 float e double: sinal, expoente, expoente com viés, fração
-# ----------------------------------------------------
+# Calculadora Programador Didática – Conversão entre bases, complemento de 2 e IEEE754
+#
+# Revisões:
+# 13/11/2025 14:30 – Implementação completa da Q1 (Base 10 → Bin/Oct/Hex/BCD).
+# 14/11/2025 11:45 – Implementação completa da Q2 (Complemento de 2 – 16 bits).
+# 16/11/2025 17:10 – Implementação completa da Q3 (IEEE754 Float e Double, com sinal/expoente/fração).
+#
 
 .data
 menu: .asciiz "\n=== CALCULADORA PROGRAMADOR DIDÁTICA ===\n1) Conversões Base 10 (Q1)\n2) Complemento de 2 (Q2)\n3) Float/Double IEEE754 (Q3)\n0) Sair\nEscolha: "
@@ -54,10 +53,6 @@ MENU_PRINCIPAL:
     beq $t0, 0, SAIR
     j MENU_PRINCIPAL
 
-# ============================================================
-# =========================== Q1 ==============================
-# Base 10 → Bin, Oct, Hex, BCD
-# ============================================================
 Q1:
     li $v0, 4
     la $a0, ask_dec
@@ -65,9 +60,8 @@ Q1:
 
     li $v0, 5
     syscall
-    move $s0, $v0     # número original
+    move $s0, $v0
 
-    # ----------------- BINÁRIO -----------------
     li $v0, 4
     la $a0, msg_bin
     syscall
@@ -75,7 +69,6 @@ Q1:
     move $a0, $s0
     jal BINARIO
 
-    # ----------------- OCTAL -------------------
     li $v0, 4
     la $a0, msg_oct
     syscall
@@ -84,7 +77,6 @@ Q1:
     move $a0, $s0
     syscall
 
-    # ----------------- HEXA --------------------
     li $v0, 4
     la $a0, msg_hex
     syscall
@@ -93,7 +85,6 @@ Q1:
     move $a0, $s0
     syscall
 
-    # ----------------- BCD ---------------------
     li $v0, 4
     la $a0, msg_bcd
     syscall
@@ -103,8 +94,6 @@ Q1:
 
     j MENU_PRINCIPAL
 
-
-# ---------- Função BINÁRIO ----------
 BINARIO:
     li $t1, 0
     la $t2, buffer
@@ -142,7 +131,6 @@ P_BIN:
 BIN_FIM:
     jr $ra
 
-# ---------- Função BCD ----------
 BCD:
 BCD_LOOP:
     beq $a0, $zero, BCD_FIM
@@ -163,11 +151,6 @@ BCD_LOOP:
 BCD_FIM:
     jr $ra
 
-
-# ============================================================
-# =========================== Q2 ==============================
-# Complemento de 2 – 16 bits
-# ============================================================
 Q2:
     li $v0, 4
     la $a0, ask_dec
@@ -198,13 +181,7 @@ CMP_LOOP:
     addi $t2, $t2, -1
     j CMP_LOOP
 
-
-# ============================================================
-# =========================== Q3 ==============================
-# IEEE754 Float e Double — Sinal, Expoente, Expoente com viés, Fração
-# ============================================================
 Q3:
-
     li $v0, 4
     la $a0, ask_real
     syscall
@@ -213,14 +190,12 @@ Q3:
     syscall
     mov.s $f0, $f0
 
-    # ----------------- FLOAT -----------------
     li $v0, 4
     la $a0, msg_float
     syscall
 
     mfc1 $t0, $f0
 
-    # Sinal
     li $v0, 4
     la $a0, msg_sinal
     syscall
@@ -229,7 +204,6 @@ Q3:
     move $a0, $t1
     syscall
 
-    # Expoente sem viés
     li $v0, 4
     la $a0, msg_exp
     syscall
@@ -239,7 +213,6 @@ Q3:
     move $a0, $t2
     syscall
 
-    # Expoente com viés (bias 127)
     li $v0, 4
     la $a0, msg_expv
     syscall
@@ -248,13 +221,12 @@ Q3:
     move $a0, $t3
     syscall
 
-    # Fração
     li $v0, 4
     la $a0, msg_frac
     syscall
     andi $t4, $t0, 0x7FFFFF
-
     li $t5, 23
+
 FRAC_LOOP:
     bltz $t5, PRINT_DOUBLE
 
@@ -268,10 +240,7 @@ FRAC_LOOP:
     addi $t5, $t5, -1
     j FRAC_LOOP
 
-
-# ---------- DOUBLE ----------
 PRINT_DOUBLE:
-
     li $v0, 4
     la $a0, msg_double
     syscall
@@ -304,8 +273,6 @@ D_PRINT:
     addi $t9, $t9, -1
     j D_LOOP
 
-
-# ============================================================
 SAIR:
     li $v0, 10
     syscall
