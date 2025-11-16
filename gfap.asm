@@ -1,134 +1,156 @@
 # Autor: Gabriel França de Albuquerque Pernambuco
 # Email: gfap@cesar.school
-# Calcuadora Programador Didática
-# Revisão: 16/11/2025 17:09
- 
+# Calculadora Programador Didática
+# Revisão: 16/11/2025 17:40
+# ----------------------------------------------------
+# Implementa:
+# Q1 – Base 10 → Binário, Octal, Hex, BCD (com passos)
+# Q2 – Complemento de 2 (16 bits)
+# Q3 – IEEE754 float e double: sinal, expoente, expoente com viés, fração
+# ----------------------------------------------------
+
 .data
-menu1: .asciiz "\n[Q1] Conversões a partir de base 10:\n1) Binário\n2) Octal\n3) Hexadecimal\n4) BCD\nEscolha: "
-ask:   .asciiz "\nDigite um número decimal: "
+menu: .asciiz "\n=== CALCULADORA PROGRAMADOR DIDÁTICA ===\n1) Conversões Base 10 (Q1)\n2) Complemento de 2 (Q2)\n3) Float/Double IEEE754 (Q3)\n0) Sair\nEscolha: "
+ask_dec: .asciiz "\nDigite um número decimal: "
+ask_real: .asciiz "\nDigite um número real: "
+
 divfmt:  .asciiz "\nN = "
-divfmt2: .asciiz "  -> N/base = "
+divfmt2: .asciiz "  ->  N/base = "
 divfmt3: .asciiz "  resto = "
-resbin: .asciiz "\nResultado: "
+
+msg_bin: .asciiz "\nBinário: "
+msg_oct: .asciiz "\nOctal: "
+msg_hex: .asciiz "\nHexadecimal: "
+msg_bcd: .asciiz "\nBCD: "
+
+msg_comp: .asciiz "\nComplemento de 2 (16 bits): "
+
+msg_float: .asciiz "\nFLOAT IEEE754 (32 bits): "
+msg_double: .asciiz "\nDOUBLE IEEE754 (64 bits): "
+
+msg_sinal: .asciiz "\nSinal: "
+msg_exp: .asciiz "\nExpoente (sem viés): "
+msg_expv: .asciiz "\nExpoente (com viés): "
+msg_frac: .asciiz "\nFração: "
 
 newline: .asciiz "\n"
 buffer: .space 64
 
 .text
 main:
+
+MENU_PRINCIPAL:
     li $v0, 4
-    la $a0, menu1
+    la $a0, menu
     syscall
 
     li $v0, 5
     syscall
-    move $t0, $v0       
+    move $t0, $v0
 
+    beq $t0, 1, Q1
+    beq $t0, 2, Q2
+    beq $t0, 3, Q3
+    beq $t0, 0, SAIR
+    j MENU_PRINCIPAL
+
+# ============================================================
+# =========================== Q1 ==============================
+# Base 10 → Bin, Oct, Hex, BCD
+# ============================================================
+Q1:
     li $v0, 4
-    la $a0, ask
+    la $a0, ask_dec
     syscall
 
     li $v0, 5
     syscall
-    move $a0, $v0     
+    move $s0, $v0     # número original
 
-    beq $t0, 1, binario
-    beq $t0, 2, octal
-    beq $t0, 3, hexa
-    beq $t0, 4, bcd
-    j fim
-
-binario:
-    li $t1, 0       
-    la $t2, buffer 
-
-bin_loop:
-    beq $a0, $zero, mostra_bin
-
+    # ----------------- BINÁRIO -----------------
     li $v0, 4
-    la $a0, divfmt
+    la $a0, msg_bin
     syscall
 
-    move $a0, $v0
+    move $a0, $s0
+    jal BINARIO
+
+    # ----------------- OCTAL -------------------
+    li $v0, 4
+    la $a0, msg_oct
     syscall
+
+    li $v0, 34
+    move $a0, $s0
+    syscall
+
+    # ----------------- HEXA --------------------
+    li $v0, 4
+    la $a0, msg_hex
+    syscall
+
+    li $v0, 34
+    move $a0, $s0
+    syscall
+
+    # ----------------- BCD ---------------------
+    li $v0, 4
+    la $a0, msg_bcd
+    syscall
+
+    move $a0, $s0
+    jal BCD
+
+    j MENU_PRINCIPAL
+
+
+# ---------- Função BINÁRIO ----------
+BINARIO:
+    li $t1, 0
+    la $t2, buffer
+
+BIN_LOOP:
+    beq $a0, $zero, BIN_PRINT
 
     li $t3, 2
     div $a0, $t3
-    mflo $t4          
-    mfhi $t5         
+    mflo $t4
+    mfhi $t5
 
-    # exibir passo
-    li $v0, 1
-    move $a0, $a0
-    syscall
-
-    li $v0, 4
-    la $a0, divfmt2
-    syscall
-
-    li $v0, 1
-    move $a0, $t4
-    syscall
-
-    li $v0, 4
-    la $a0, divfmt3
-    syscall
-
-    li $v0, 1
-    move $a0, $t5
-    syscall
-
-    # salva no buffer (invertido)
     addi $t5, $t5, 48
     sb $t5, ($t2)
     addi $t2, $t2, 1
     addi $t1, $t1, 1
 
     move $a0, $t4
-    j bin_loop
+    j BIN_LOOP
 
-mostra_bin:
-    li $v0, 4
-    la $a0, resbin
-    syscall
-
+BIN_PRINT:
     addi $t2, $t2, -1
 
-bin_print:
-    bltz $t1, fim
+P_BIN:
+    bltz $t1, BIN_FIM
+
     lb $a0, ($t2)
     li $v0, 11
     syscall
 
     addi $t2, $t2, -1
     addi $t1, $t1, -1
-    j bin_print
+    j P_BIN
 
-octal:
-    li $v0, 34
-    move $a0, $a0
-    syscall
-    j fim
+BIN_FIM:
+    jr $ra
 
-hexa:
-    li $v0, 34
-    move $a0, $a0
-    syscall
-    j fim
-
-bcd:
-    li $t0, 0
-    li $v0, 4
-    la $a0, resbin
-    syscall
-
-bcd_loop:
-    beq $a0, $zero, fim
+# ---------- Função BCD ----------
+BCD:
+BCD_LOOP:
+    beq $a0, $zero, BCD_FIM
 
     li $t1, 10
     div $a0, $t1
     mflo $t2
-    mfhi $t3     # dígito
+    mfhi $t3
 
     addi $t3, $t3, 48
     li $v0, 11
@@ -136,41 +158,35 @@ bcd_loop:
     syscall
 
     move $a0, $t2
-    j bcd_loop
+    j BCD_LOOP
 
-fim:
-    li $v0, 10
-    syscall
+BCD_FIM:
+    jr $ra
 
-# Complemento de 2 — 16 bits
 
-.data
-ask: .asciiz "\nDigite um valor decimal (signed): "
-msgbin: .asciiz "\nBinário puro: "
-msgcomp: .asciiz "\nComplemento de 2 (16 bits): "
-newline: .asciiz "\n"
-
-.text
-main:
+# ============================================================
+# =========================== Q2 ==============================
+# Complemento de 2 – 16 bits
+# ============================================================
+Q2:
     li $v0, 4
-    la $a0, ask
+    la $a0, ask_dec
     syscall
 
     li $v0, 5
     syscall
     move $t0, $v0
 
-    # pega 16 bits
     andi $t1, $t0, 0xFFFF
 
     li $v0, 4
-    la $a0, msgcomp
+    la $a0, msg_comp
     syscall
 
     li $t2, 15
 
-loop_bits:
-    bltz $t2, fim
+CMP_LOOP:
+    bltz $t2, MENU_PRINCIPAL
 
     srl $t3, $t1, $t2
     andi $t3, $t3, 1
@@ -180,95 +196,116 @@ loop_bits:
     syscall
 
     addi $t2, $t2, -1
-    j loop_bits
+    j CMP_LOOP
 
-fim:
-    li $v0, 10
-    syscall
 
-# Real → Float e Double (IEEE 754) com passos
-
-.data
-ask: .asciiz "\nDigite um número real: "
-msgf: .asciiz "\nFLOAT (32 bits): "
-msgd: .asciiz "\nDOUBLE (64 bits): "
-sinal: .asciiz "\nSinal: "
-expo:  .asciiz "\nExpoente: "
-expob: .asciiz "\nExpoente c/ viés: "
-frac:  .asciiz "\nFração: "
-newline: .asciiz "\n"
-
-.text
-main:
+# ============================================================
+# =========================== Q3 ==============================
+# IEEE754 Float e Double — Sinal, Expoente, Expoente com viés, Fração
+# ============================================================
+Q3:
 
     li $v0, 4
-    la $a0, ask
+    la $a0, ask_real
     syscall
 
     li $v0, 6
     syscall
     mov.s $f0, $f0
 
-##################################
-# FLOAT – print dos 32 bits      #
-##################################
+    # ----------------- FLOAT -----------------
     li $v0, 4
-    la $a0, msgf
+    la $a0, msg_float
     syscall
 
-    mfc1 $t0, $f0    # bits
+    mfc1 $t0, $f0
 
-    li $t1, 31
-float_bits:
-    bltz $t1, double_part
+    # Sinal
+    li $v0, 4
+    la $a0, msg_sinal
+    syscall
+    srl $t1, $t0, 31
+    li $v0, 1
+    move $a0, $t1
+    syscall
 
-    srl $t2, $t0, $t1
-    andi $t2, $t2, 1
-
+    # Expoente sem viés
+    li $v0, 4
+    la $a0, msg_exp
+    syscall
+    srl $t2, $t0, 23
+    andi $t2, $t2, 0xFF
     li $v0, 1
     move $a0, $t2
     syscall
 
-    addi $t1, $t1, -1
-    j float_bits
-
-##################################
-# DOUBLE – print dos 64 bits     #
-##################################
-double_part:
+    # Expoente com viés (bias 127)
     li $v0, 4
-    la $a0, msgd
+    la $a0, msg_expv
+    syscall
+    addi $t3, $t2, -127
+    li $v0, 1
+    move $a0, $t3
+    syscall
+
+    # Fração
+    li $v0, 4
+    la $a0, msg_frac
+    syscall
+    andi $t4, $t0, 0x7FFFFF
+
+    li $t5, 23
+FRAC_LOOP:
+    bltz $t5, PRINT_DOUBLE
+
+    srl $t6, $t4, $t5
+    andi $t6, $t6, 1
+
+    li $v0, 1
+    move $a0, $t6
+    syscall
+
+    addi $t5, $t5, -1
+    j FRAC_LOOP
+
+
+# ---------- DOUBLE ----------
+PRINT_DOUBLE:
+
+    li $v0, 4
+    la $a0, msg_double
     syscall
 
     cvt.d.s $f2, $f0
-    mfc1 $t4, $f2
-    mfc1 $t5, $f3
+    mfc1 $t7, $f2
+    mfc1 $t8, $f3
 
-    move $t0, $t4
-    li $t1, 63
+    li $t9, 63
 
-loop_d:
-    bltz $t1, fim
+D_LOOP:
+    bltz $t9, MENU_PRINCIPAL
 
-    if_le_31:
-        srl $t2, $t5, $t1
-        andi $t2, $t2, 1
-        j print_d
+    blt $t9, 32, D_LOW
 
-    else_bits:
-        sub $t3, $t1, 32
-        srl $t2, $t4, $t3
-        andi $t2, $t2, 1
+    srl $t6, $t8, $t9
+    andi $t6, $t6, 1
+    j D_PRINT
 
-print_d:
+D_LOW:
+    sub $t4, $t9, 32
+    srl $t6, $t7, $t4
+    andi $t6, $t6, 1
+
+D_PRINT:
     li $v0, 1
-    move $a0, $t2
+    move $a0, $t6
     syscall
 
-    addi $t1, $t1, -1
-    j loop_d
+    addi $t9, $t9, -1
+    j D_LOOP
 
-fim:
+
+# ============================================================
+SAIR:
     li $v0, 10
     syscall
-
